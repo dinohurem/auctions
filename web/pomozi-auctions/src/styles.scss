@@ -1,0 +1,117 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+
+$color-primary-blue: #5d65ff;
+
+@layer components {
+    .bg-primary-blue {
+        background-color: $color-primary-blue;
+    }
+
+    .btn {
+        @apply font-semibold rounded shadow focus:outline-none focus:ring focus:ring-violet-400 focus:ring-opacity-75;
+
+        &.btn-xs {
+            @apply py-1 px-3 text-xs bg-primary-blue text-white;
+        }
+
+        &.btn-s {
+            @apply py-2 px-4 text-sm bg-primary-blue text-white;
+        }
+
+        &.btn-m {
+            @apply py-2 px-5 text-base bg-primary-blue text-white;
+        }
+
+        &.btn-l {
+            @apply py-3 px-6 text-lg bg-primary-blue text-white;
+        }
+
+        &.btn-xl {
+            @apply py-4 px-8 text-xl bg-primary-blue text-white;
+        }
+    }
+}
+
+// Define color variables
+$color-gray-500: #dbdbdb;
+$color-dark-gray: #333333;
+
+@layer components {
+
+    // Override checkbox styles
+    @layer components {
+
+        // Override checkbox styles
+        input[type="checkbox"] {
+            appearance: none;
+            /* Remove default browser styles */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid $color-gray-500;
+            /* Thicker border and grey color */
+            border-radius: 0.25rem;
+            /* Rounded corners */
+            outline: none;
+            /* Remove focus outline */
+            transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            /* Smooth transition for border and background color */
+            display: inline-block;
+            cursor: pointer;
+            /* Show pointer cursor */
+            position: relative;
+
+            &:checked {
+                background-color: $color-gray-500;
+                /* Change background color when checked */
+                border-color: $color-gray-500;
+                /* Change border color to match background */
+            }
+
+            // Create checkmark
+            &::after {
+                content: '';
+                /* Empty content */
+                position: absolute;
+                /* Position absolute for positioning */
+                top: 50%;
+                /* Align vertically */
+                left: 50%;
+                /* Align horizontally */
+                transform: translate(-50%, -50%) rotate(45deg) scale(0);
+                /* Center checkmark, rotate, and scale down initially */
+                width: 0.3125rem;
+                /* Adjust width as needed */
+                height: 0.625rem;
+                /* Adjust height as needed */
+                border: solid black;
+                border-width: 0 2px 2px 0;
+                /* Create the checkmark shape */
+                transition: transform 0.2s ease-in-out;
+                /* Smooth transition for transform */
+            }
+
+            &:checked::after {
+                transform: translate(-50%, -50%) rotate(45deg) scale(1);
+                /* Scale up checkmark when checkbox is checked */
+            }
+        }
+    }
+
+}
+
+// Remove arrows from input[type="number"].
+@layer base {
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}
