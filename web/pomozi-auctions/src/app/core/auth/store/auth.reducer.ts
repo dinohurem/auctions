@@ -15,7 +15,6 @@ export const authReducer = createReducer(
         loading: true
     })),
     on(AuthActions.loginSuccess, (state, { token }) => {
-        const cookieData = JSON.parse(atob(token.split('.')[1]));
         return {
             ...state,
             loading: false,

@@ -1,11 +1,10 @@
-﻿using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
-using PomoziAuctions.SharedKernel;
+﻿using PomoziAuctions.SharedKernel;
 using PomoziAuctions.SharedKernel.Interfaces;
 
 namespace PomoziAuctions.Core;
-public abstract class FullAuditCompanyAggregateRoot : EntityBase, ICompanyKey, ISoftDelete, IAggregateRoot
+public abstract class FullAuditCompanyAggregateRoot : EntityBase, ISoftDelete, IAggregateRoot
 {
-  public int? CompanyId { get; set; }
+  // Any property can be added here.
 
   public bool Deleted { get; set; }
 }

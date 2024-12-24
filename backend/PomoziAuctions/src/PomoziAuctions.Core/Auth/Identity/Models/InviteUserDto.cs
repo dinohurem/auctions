@@ -2,9 +2,7 @@
 
 public class InviteUserDto
 {
-  public int? CandidateId { get; set; }
-
-  public int? CompanyId { get; set; }
+  public int? AuctioneerId { get; set; }
 
   public string Email { get; set; }
 

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using PomoziAuctions.Core.Abstractions;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
 using PomoziAuctions.Core.Auth.Identity.Models;
 using PomoziAuctions.Core.Auth.Security.Interfaces;
 using PomoziAuctions.Core.Auth.Security.Models;
@@ -17,7 +16,6 @@ public class IdentityService : IIdentityService
 {
   private const string UserInvitationTokenPurpose = "UserInvitation";
   private const string ResetPasswordTokenPurpose = "ResetPassword";
-  private const string CompanyAdminRoleId = "999f4c79-e3d4-4a3c-bf5a-650c1c880d39";
 
   private readonly UserManager<IdentityUser> _userManager;
   private readonly RoleManager<Models.IdentityRole> _roleManager;
@@ -27,7 +25,6 @@ public class IdentityService : IIdentityService
   private readonly IStringEncryptor _stringEncryptor;
   private readonly IOptions<IdentityEmailOptions> _identityEmailOptions;
   private readonly ICurrentUser _currentUser;
-  private readonly ICurrentCompany _currentCompany;
 
   public IdentityService(UserManager<Models.IdentityUser> userManager,
     RoleManager<Models.IdentityRole> roleManager,
@@ -36,8 +33,7 @@ public class IdentityService : IIdentityService
     IDataFilter dataFilter,
     IStringEncryptor stringEncryptor,
     IOptions<IdentityEmailOptions> identityEmailOptions,
-    ICurrentUser currentUser,
-    ICurrentCompany currentCompany)
+    ICurrentUser currentUser)
   {
     _userManager = userManager;
     _roleManager = roleManager;
@@ -47,7 +43,6 @@ public class IdentityService : IIdentityService
     _stringEncryptor = stringEncryptor;
     _identityEmailOptions = identityEmailOptions;
     _currentUser = currentUser;
-    _currentCompany = currentCompany;
   }
 
   public async Task<Result<List<Models.IdentityUser>>> GetUsers() => new Result<List<Models.IdentityUser>>(_userManager.Users.ToList());
@@ -99,73 +94,8 @@ public class IdentityService : IIdentityService
     return new Result<bool>(true);
   }
 
-  public async Task<Result<bool>> SendInvitationToExistingUser(int companyId, string email)
-  {
-    using var _ = _currentCompany.SetCurrentCompany(companyId, null, null);
-    var user = await _userManager.FindByEmailAsync(email);
-
-    if (user == null || user.IsDisabled == false)
-    {
-      return new Result<bool>(false);
-    }
-
-    var roles = await _userManager.GetRolesAsync(user);
-
-    var inviteDto = new InviteUserDto
-    {
-      Email = email,
-      CandidateId = user.CandidateId,
-      CompanyId = user.CompanyId,
-      Phone = user.PhoneNumber,
-      Roles = roles,
-      Name = email
-    };
-
-    user.IsDisabled = false;
-    var result = await _userManager.UpdateAsync(user);
-    if (!result.Succeeded)
-    {
-      return new Result<bool>(false);
-    }
-
-    await SendInvitationEmail(inviteDto, user);
-
-    return new Result<bool>(true);
-  }
-
-  public async Task<Result<bool>> SendInvitation(InviteUserDto inviteUserDto)
-  {
-    var user = new Models.IdentityUser
-    {
-      Email = inviteUserDto.Email,
-      PhoneNumber = inviteUserDto.Phone,
-      EmailConfirmed = false,
-      CandidateId = inviteUserDto.CandidateId,
-      CompanyId = inviteUserDto.CompanyId,
-      UserName = inviteUserDto.Email,
-      // IsDisabled = true - We can leave this out as the user sets the password when they accept the invitation.
-    };
-
-    var userResult = await _userManager.CreateAsync(user);
-    if (!userResult.Succeeded)
-    {
-      return new Result<bool>(false);
-    }
-
-    var roleResult = await _userManager.AddToRolesAsync(user, inviteUserDto.Roles);
-    if (!roleResult.Succeeded)
-    {
-      return new Result<bool>(false);
-    }
-
-    await SendInvitationEmail(inviteUserDto, user);
-
-    return new Result<bool>(true);
-  }
-
   public async Task<Result<AcceptInvitationResponseDto>> AcceptInvitation(AcceptInvitationDto acceptInvitationDto)
   {
-    using var _ = _dataFilter.Disable<ICompanyKey>();
     var user = await _userManager.FindByEmailAsync(acceptInvitationDto.Email);
     var code = _stringEncryptor.Decrpyt(acceptInvitationDto.Code, UserInvitationTokenPurpose);
 
@@ -187,7 +117,6 @@ public class IdentityService : IIdentityService
   // TODO: Change response type.
   public async Task<Result<bool>> SendResetPasswordEmail(string email, string language)
   {
-    using var _ = _dataFilter.Disable<ICompanyKey>();
     var user = await _userManager.FindByEmailAsync(email);
 
     if (user == null)
@@ -217,7 +146,6 @@ public class IdentityService : IIdentityService
   // TODO: Change response type.
   public async Task<Result<bool>> ResetPassword(ResetPasswordDto resetPasswordDto)
   {
-    using var _ = _dataFilter.Disable<ICompanyKey>();
     var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
 
     if (user == null)
@@ -244,7 +172,6 @@ public class IdentityService : IIdentityService
       return Result<bool>.Error("Trenutni password nije tacan.");
     }
 
-    using var _ = _dataFilter.Disable<ICompanyKey>();
     var user = await _userManager.FindByIdAsync(_currentUser.Id?.ToString());
 
     if (user == null)
@@ -262,29 +189,4 @@ public class IdentityService : IIdentityService
   }
 
   private static string GeneratePassword(int length) => Convert.ToBase64String(RandomNumberGenerator.GetBytes(length));
-
-  private async Task SendInvitationEmail(InviteUserDto inviteUserDto, IdentityUser user)
-  {
-    var emailOptions = _identityEmailOptions.Value;
-    var inviteUserPermissions = await _roleManager.GetRolesPermissions(inviteUserDto.Roles.ToArray());
-
-    var canUseWebApp = inviteUserPermissions.Any(p => p == Permissions.CanUseWebApp);
-
-    var invitationToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-    var encryptedToken = _stringEncryptor.Encrpyt(invitationToken, UserInvitationTokenPurpose);
-    var setPasswordUrl = $"{emailOptions.ResetPasswordUrl}?new=true&token={System.Net.WebUtility.UrlEncode(encryptedToken)}&email={inviteUserDto.Email}";
-
-    var templateData = new
-    {
-      CompanyName = _currentCompany.Name,
-      SetPasswordUrl = setPasswordUrl,
-      UserName = inviteUserDto.Name,
-      Email = inviteUserDto.Email,
-      WebUrl = emailOptions.WebUrl,
-    };
-
-    var templateId = emailOptions.AcceptInviteTemplate;
-
-    await _emailSender.SendAsync(emailOptions.FromEmail, user.Email, templateId, templateData);
-  }
 }

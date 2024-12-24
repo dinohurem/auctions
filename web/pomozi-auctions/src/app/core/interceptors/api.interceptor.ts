@@ -5,7 +5,8 @@ import { CookieService } from '../auth/services/cookie.service';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
     var cookieService: CookieService = inject(CookieService);
-    const Authorization = `Bearer ${cookieService.getCookie('accessToken')}`;
+    const Authorization = `Bearer`;
+    // const Authorization = `Bearer ${cookieService.getCookie('accessToken')}`;
     const apiReq = req.clone({
         url: `${environment.apiUrl}/${req.url}`,
         setHeaders: {

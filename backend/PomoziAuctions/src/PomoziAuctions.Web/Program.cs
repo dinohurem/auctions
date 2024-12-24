@@ -10,8 +10,6 @@ using PomoziAuctions.Abstractions.Web;
 using PomoziAuctions.Core;
 using PomoziAuctions.Core.Abstractions;
 using PomoziAuctions.Core.Aggregates.BlobAggregate.Interfaces;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Models;
 using PomoziAuctions.Core.Auth.Identity.Models;
 using PomoziAuctions.Core.Auth.Identity.Services;
 using PomoziAuctions.Core.Auth.Security.Interfaces;
@@ -138,15 +136,8 @@ builder.Services.AddDbContext<IdentityDbContext>(o =>
 });
 
 builder.Services.AddHttpContextAccessor();
-
 builder.Services.AddScoped<IdentityService>();
-builder.Services.AddScoped<IDataFilter, DataFilter>()
-  .AddScoped<ICurrentCompany, CurrentCompany>()
-  .AddSingleton<ICurrentCompanyAccessor, CurrentCompanyAccessor>();
-
-
-
-
+builder.Services.AddScoped<IDataFilter, DataFilter>();
 builder.Services.AddScoped<IBlobStorage, AzureStorage>();
 builder.Services.AddSingleton<IAppPath, AppPath>();
 
@@ -166,7 +157,7 @@ else
 
 builder.Services.AddSwaggerGen(options =>
 {
-  options.SwaggerDoc("v1", new OpenApiInfo { Title = "Sajamska Aplikacija API", Version = "v1" });
+  options.SwaggerDoc("v1", new OpenApiInfo { Title = "PomoziAuctions API", Version = "v1" });
   options.EnableAnnotations();
 });
 
@@ -265,13 +256,6 @@ static async Task SeedDatabase(WebApplication app)
 
     if (app.Environment.IsDevelopment())
     {
-      // Seed Companies
-      if (!appContext.Companies.Any())
-      {
-        //appContext.Companies.AddRange(SeedData.GetCompanies());
-        await appContext.SaveChangesAsync();
-      }
-
       // Seed Users
       if (!identityContext.Users.Any())
       {
@@ -279,7 +263,7 @@ static async Task SeedDatabase(WebApplication app)
         foreach (var user in IdentitySeedData.GetUsers())
         {
           // Log user properties before creating
-          Console.WriteLine($"Creating user: {user.UserName}, CompanyId: {user.CompanyId}, CandidateId: {user.CandidateId}");
+          Console.WriteLine($"Creating user: {user.UserName}, AuctioneerId: {user.AuctioneerId}");
           var createResult = await userManager.CreateAsync(user, "Password1");
           if (!createResult.Succeeded)
           {
@@ -304,7 +288,7 @@ static async Task SeedDatabase(WebApplication app)
         foreach (var user in IdentitySeedData.GetProdUsers())
         {
           // Log user properties before creating
-          Console.WriteLine($"Creating user: {user.UserName}, CompanyId: {user.CompanyId}, CandidateId: {user.CandidateId}");
+          Console.WriteLine($"Creating user: {user.UserName}, AuctioneerId: {user.AuctioneerId}");
           var createResult = await userManager.CreateAsync(user, "Password1");
           if (!createResult.Succeeded)
           {

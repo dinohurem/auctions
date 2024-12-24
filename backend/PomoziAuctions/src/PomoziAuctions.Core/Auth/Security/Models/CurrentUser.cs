@@ -9,8 +9,6 @@ public class CurrentUser : ICurrentUser
   private readonly Lazy<ClaimsPrincipal> _principal;
 
   private Guid? _id;
-  private int? _companyId;
-  private Guid? _packageId;
   private string _email;
   private IReadOnlyCollection<string> _roles;
   private IReadOnlyCollection<string> _permissions;
@@ -25,8 +23,6 @@ public class CurrentUser : ICurrentUser
   public bool IsAuthenticated => Id != null;
 
   public Guid? Id => _id ??= ToGuid(GetClaimValue(CustomClaimTypes.UserId));
-
-  public int? CompanyId => _companyId ??= ToInt(GetClaimValue(CustomClaimTypes.CompanyId));
 
   public string Email => _email ??= GetClaimValue(CustomClaimTypes.Email);
 

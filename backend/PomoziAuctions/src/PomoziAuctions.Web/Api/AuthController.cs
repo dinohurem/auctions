@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
 using PomoziAuctions.Core.Auth.Identity.Models;
 using PomoziAuctions.Core.Auth.Identity.Services;
 using PomoziAuctions.Core.Auth.Security.Interfaces;
@@ -43,7 +42,6 @@ public class AuthController : BaseApiController
       return BadRequest();
     }
 
-    using var _ = _dataFilter.Disable<ICompanyKey>();
     var user = await _userManager.FindByEmailAsync(userDto.Email);
     if (user == null)
     {
@@ -73,7 +71,6 @@ public class AuthController : BaseApiController
   [HttpPost("/refresh")]
   public async Task<IActionResult> Refresh(string email)
   {
-    using var a = _dataFilter.Disable<ICompanyKey>();
     var user = await _userManager.FindByEmailAsync(email);
     if (user == null)
     {
@@ -90,7 +87,6 @@ public class AuthController : BaseApiController
   [HttpPost("/disable")]
   public async Task<IActionResult> Disable(string email)
   {
-    using var a = _dataFilter.Disable<ICompanyKey>();
     var user = await _userManager.FindByEmailAsync(email);
 
     user.IsDisabled = true;

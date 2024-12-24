@@ -17,17 +17,11 @@ public static class CustomClaimTypes
 
   public static string UserId { get; set; } = "useridentifier";
 
-  public static string CandidateId { get; set; } = "candidateidentifier";
+  public static string AuctioneerId { get; set; } = "auctioneeridentifier";
 
   public static string Permissions { get; set; } = "permissions";
 
   public static string Roles { get; set; } = "roles";
-
-  public static string CompanyId { get; set; } = "companyidentifier";
-
-  public static string CompanyName { get; set; } = "companyname";
-
-  public static string CompanyType { get; set; } = "companytype";
 
   public static string UserImpersonation { get; set; } = "userimpersonation";
 }

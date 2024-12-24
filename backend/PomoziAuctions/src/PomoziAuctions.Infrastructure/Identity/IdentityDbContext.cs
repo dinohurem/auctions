@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
 using PomoziAuctions.Core.Auth.Identity.Models;
 using PomoziAuctions.SharedKernel;
 using PomoziAuctions.SharedKernel.DataFilters;
@@ -12,25 +11,20 @@ namespace PomoziAuctions.Infrastructure.Identity;
 public class IdentityDbContext : IdentityDbContext<IdentityUser, IdentityRole, string, IdentityUserClaim, IdentityUserRole, IdentityUserLogin, IdentityRoleClaim, IdentityUserToken>
 {
   private readonly IDataFilter _dataFilter;
-  private readonly ICurrentCompany _currentCompany;
 
   public IdentityDbContext(DbContextOptions dbContextOptions)
     : base(dbContextOptions)
   {
   }
 
-  public IdentityDbContext(DbContextOptions dbContextOptions, IDataFilter dataFilter, ICurrentCompany currentCompany)
+  public IdentityDbContext(DbContextOptions dbContextOptions, IDataFilter dataFilter)
     : base(dbContextOptions)
   {
     _dataFilter = dataFilter;
-    _currentCompany = currentCompany;
   }
 
   protected bool SoftDeleteFilterEnabled => _dataFilter?.IsEnabled<ISoftDelete>() ?? true;
 
-  protected bool CompanyKeyFilterEnabled => _dataFilter?.IsEnabled<ICompanyKey>() ?? false;
-
-  protected int? CompanyKey => _currentCompany?.Id;
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -95,11 +89,6 @@ public class IdentityDbContext : IdentityDbContext<IdentityUser, IdentityRole, s
     {
       modelBuilder.Entity<TEntity>().HasQueryFilter(e => !SoftDeleteFilterEnabled || !EF.Property<bool>(e, nameof(ISoftDelete.Deleted)));
     }
-
-    if (typeof(ICompanyKey).IsAssignableFrom(typeof(TEntity)))
-    {
-      modelBuilder.Entity<TEntity>().HasQueryFilter(e => !CompanyKeyFilterEnabled || EF.Property<int?>(e, nameof(ICompanyKey.CompanyId)) == CompanyKey || EF.Property<int?>(e, nameof(ICompanyKey.CompanyId)) == null);
-    }
   }
 
   public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -113,10 +102,6 @@ public class IdentityDbContext : IdentityDbContext<IdentityUser, IdentityRole, s
         case EntityState.Modified:
           break;
         case EntityState.Added:
-          //if (entry.Entity is ICompanyKey companyEntity)
-          //{
-          //  companyEntity.CompanyId = _currentCompany.Id;
-          //}
           break;
         case EntityState.Detached:
           break;

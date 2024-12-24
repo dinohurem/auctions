@@ -16,7 +16,7 @@ export class AuthEffects {
             mergeMap(({ loginRequest }) =>
                 this.authService.login(loginRequest).pipe(
                     map(response => {
-                        this.cookieService.setCookie('accessToken', response.accessToken);
+                        // this.cookieService.setCookie('accessToken', response.accessToken);
                         return AuthActions.loginSuccess({ token: response.accessToken });
                     }),
                     catchError(error => {

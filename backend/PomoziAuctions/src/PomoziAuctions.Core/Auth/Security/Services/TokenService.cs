@@ -5,7 +5,6 @@ using Ardalis.Result;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
 using PomoziAuctions.Core.Auth.Security.Interfaces;
 using PomoziAuctions.Core.Auth.Security.Models;
 
@@ -55,8 +54,7 @@ public class TokenService : ITokenService
     {
       new Claim(CustomClaimTypes.Email, user.Email),
       new Claim(CustomClaimTypes.UserId, user.Id),
-      new Claim(CustomClaimTypes.CandidateId, user.CandidateId.ToString()),
-      new Claim(CustomClaimTypes.CompanyId, user.CompanyId.ToString()),
+      new Claim(CustomClaimTypes.AuctioneerId, user.AuctioneerId.ToString()),
       new Claim(CustomClaimTypes.Roles, string.Join(CustomClaimTypes.ClaimTypeValueSeparator, userRoles)),
     };
 

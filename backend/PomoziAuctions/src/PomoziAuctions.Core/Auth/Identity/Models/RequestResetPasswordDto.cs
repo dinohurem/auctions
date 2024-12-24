@@ -6,5 +6,4 @@ public class RequestResetPasswordDto
 {
   [Required]
   public string Email { get; set; }
-
 }

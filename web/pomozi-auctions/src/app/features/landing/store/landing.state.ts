@@ -1,5 +1,7 @@
+import { Auction } from "../../../shared/models/auction.model";
+
 export interface LandingState {
-    auctions: any[];
+    auctions: Auction[];
     loading: boolean;
     error: any;
     currentPage: number;

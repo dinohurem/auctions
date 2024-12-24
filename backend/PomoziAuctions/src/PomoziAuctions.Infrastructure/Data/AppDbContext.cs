@@ -1,8 +1,5 @@
 ﻿using System.Reflection;
 using PomoziAuctions.Core.Aggregates.BlobAggregate.Models;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Models;
-using PomoziAuctions.Core.Aggregates.TabAggregate.Models;
 using PomoziAuctions.SharedKernel;
 using PomoziAuctions.SharedKernel.DataFilters;
 using PomoziAuctions.SharedKernel.Interfaces;
@@ -15,28 +12,20 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
 {
   private readonly IDomainEventDispatcher? _dispatcher;
   private readonly IDataFilter _dataFilter;
-  private readonly ICurrentCompany _currentCompany;
 
   public AppDbContext(DbContextOptions<AppDbContext> options,
-    IDomainEventDispatcher dispatcher, IDataFilter dataFilter, ICurrentCompany currentCompany)
+    IDomainEventDispatcher dispatcher, IDataFilter dataFilter)
     : base(options)
   {
     _dispatcher = dispatcher;
     _dataFilter = dataFilter;
-    _currentCompany = currentCompany;
   }
 
   public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
   protected bool SoftDeleteFilterEnabled => _dataFilter?.IsEnabled<ISoftDelete>() ?? true;
 
-  protected bool CompanyKeyFilterEnabled => _dataFilter?.IsEnabled<ICompanyKey>() ?? false;
-
-  protected int? CompanyKey => _currentCompany?.Id;
-
-  public DbSet<Company> Companies => Set<Company>();
-
-  public DbSet<Blob> Blobs { get; set; }  
+  public DbSet<Blob> Blobs { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -57,21 +46,15 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
   protected virtual void ConfigureGlobalFilters<TEntity>(ModelBuilder modelBuilder, IMutableEntityType mutableEntityType)
     where TEntity : class
   {
-    if (typeof(ICompanyKey).IsAssignableFrom(typeof(TEntity)) &&
-      typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity)))
+    if (typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity)))
     {
-      modelBuilder.Entity<TEntity>().HasQueryFilter(e =>
-        (!CompanyKeyFilterEnabled || EF.Property<int?>(e, nameof(ICompanyKey.CompanyId)) == CompanyKey || EF.Property<int?>(e, nameof(ICompanyKey.CompanyId)) == null) &&
+      modelBuilder.Entity<TEntity>().HasQueryFilter(e =>       
         (!SoftDeleteFilterEnabled || !EF.Property<bool>(e, nameof(ISoftDelete.Deleted)))
       );
     }
     else if (typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity)))
     {
       modelBuilder.Entity<TEntity>().HasQueryFilter(e => !SoftDeleteFilterEnabled || !EF.Property<bool>(e, nameof(ISoftDelete.Deleted)));
-    }
-    else if (typeof(ICompanyKey).IsAssignableFrom(typeof(TEntity)))
-    {
-      modelBuilder.Entity<TEntity>().HasQueryFilter(e => !CompanyKeyFilterEnabled || EF.Property<int?>(e, nameof(ICompanyKey.CompanyId)) == CompanyKey || EF.Property<int?>(e, nameof(ICompanyKey.CompanyId)) == null);
     }
   }
 
@@ -92,10 +75,6 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
         case EntityState.Modified:
           break;
         case EntityState.Added:
-          if (entry.Entity is ICompanyKey companyEntity && _currentCompany != null && _currentCompany.Id != null)
-          {
-            companyEntity.CompanyId = _currentCompany.Id;
-          }
           break;
         case EntityState.Detached:
           break;

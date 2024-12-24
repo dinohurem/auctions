@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
 
 namespace PomoziAuctions.Core.Auth.Identity.Models;
 
-public class IdentityUser : Microsoft.AspNetCore.Identity.IdentityUser, ICompanyKey
+public class IdentityUser : Microsoft.AspNetCore.Identity.IdentityUser
 {
-  public int? CompanyId { get; set; }
-
-  public int? CandidateId { get; set; }
+  public int? AuctioneerId { get; set; }
 
   public bool IsDisabled { get; set; } = false;
 }

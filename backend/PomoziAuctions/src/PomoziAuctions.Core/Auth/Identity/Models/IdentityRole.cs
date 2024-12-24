@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using PomoziAuctions.Core.Aggregates.CompanyAggregate.Interfaces;
 
 namespace PomoziAuctions.Core.Auth.Identity.Models;
 
